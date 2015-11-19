@@ -151,12 +151,7 @@ In order to use this Mule Anypoint Template you need to configure properties (Cr
 + mail.subject `Batch Job Finished Report`
 
 #### Account Representatives (use '\' to indicate new line)
-+ zip2accountRep=[           \
- '90210' : 'Mark Anthony',   \
- '95060' : 'Daniel Craig',   \
- '95014' : 'Martin Jacobs',  \
- '04001' : 'Bill Elliot'     \
- ]
++ zip2accountRep=`['90210' : 'Mark Anthony', '95060' : 'Daniel Craig', '95014' : 'Martin Jacobs', '04001' : 'Bill Elliot']`
 
 # API Calls <a name="apicalls"/>
 This section is not relevant for this use case.
