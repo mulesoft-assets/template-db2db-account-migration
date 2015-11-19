@@ -1,0 +1,113 @@
+<?xml version="1.0"?>
+<configuration>
+	<placeholders>
+		<placeholder id="template_name">Database to Database Account Migration</placeholder>
+	</placeholders>
+	<sections>
+		<section id="use_case">
+I want to migrate accounts from one database to another.
+
+This Template should serve as a foundation for the process of migrating accounts from Database A to Database B, being able to specify filtering criteria and desired behavior when an account already exists in the Database B. 
+
+As implemented, this Template leverage the [Batch Module](http://www.mulesoft.org/documentation/display/current/Batch+Processing).
+The batch job is divided in Input, Process and On Complete stages.
+During the Input stage the Template will select all the existing Accounts that match the filtering criteria from Database A.
+The last step of the Process stage will create / update the accounts in Database B. In addition, it will assign Account Representatives by the zip code of the source Account.
+Finally during the On Complete stage the Template will both output statistics data into the console and send a notification email with the results of the batch execution. 
+		</section>
+		<section id="considerations">
+<![CDATA[
+**Note:** This particular Anypoint Template illustrate the migration use case between two Databases, thus it requires a Database instances to work.
+The Anypoint Template comes packaged with a SQL script to create the DB table that it uses. 
+It is the user responsibility to use the scripts to create the tables in an available schema and change the configuration accordingly.
+The SQL script files can be found in [src/main/resources/](../master/src/main/resources/)
+
+This template is customized for MySQL. To use it with different SQL implementation, some changes are necessary:
+
+* update SQL script dialect to desired one
+* replace MySQL driver library (or add another) dependency to desired one in [POM](pom.xml)
+* replace attribute `driverClassName` of suitable `db:generic-config` element with class name of desired JDBC driver in [src/main/app/config.xml](../master/src/main/app/config.xml)
+* update JDBC URL in `mule.*.properties` file
+]]>
+		</section>
+		<section id="run_it">
+<![CDATA[
+
+In any of the ways you would like to run this Template this is an example of the output you'll see after hitting the HTTP endpoint:
+
+<pre>
+<h1>Batch Process initiated</h1>
+<b>ID:</b>6eea3cc6-7c96-11e3-9a65-55f9f3ae584e<br/>
+<b>Records to Be Processed: </b>9<br/>
+<b>Start execution on: </b>Thu Nov 19 18:05:33 GMT-03:00 2015
+</pre>
+]]>
+		</section>
+		<section id="running_on_cloudhub">
+<![CDATA[
+Once your app is all set and started, supposing you choose `db2dbaccountmigration` as domain name to trigger the use case, you just need to hit `http://db2dbaccountmigration.cloudhub.io/migrateaccounts` and report will be sent to the emails configured.
+]]>
+		</section>
+		<section id="running_on_standalone">
+<![CDATA[
+After this, to trigger the use case you just need to hit the local HTTP Listener Connector on the port you configured in your file. If this is for instance, `9090` then you should hit: `http://localhost:9090/migrateaccounts` and this will run the migration process and send the batch process statistics to the email addresses configured.
+]]>
+		</section>
+		<section id="application_configuration">
+		<![CDATA[
++ http.port `9090` 
++ page.size `200`
+
+#### Database Connector configuration
++ db.a.jdbcUrl `jdbc:mysql://localhost:3306/mule-a?user=mule&password=mule`
++ db.b.jdbcUrl `jdbc:mysql://localhost:3306/mule-b?user=mule&password=mule`
+
+#### SMTP Services configuration
++ smtp.host `smtp.gmail.com`
++ smtp.port `587`
++ smtp.user `email%40example.com`
++ smtp.password `password`
+
+#### E-mail Details
++ mail.from `batch.migrateaccounts.migration%40mulesoft.com`
++ mail.to `cesar.garcia@mulesoft.com`
++ mail.subject `Batch Job Finished Report`
+
+#### Account Representatives (use '\' to indicate new line)
++ zip2accountRep=[           \
+ '90210' : 'Mark Anthony',   \
+ '95060' : 'Daniel Craig',   \
+ '95014' : 'Martin Jacobs',  \
+ '04001' : 'Bill Elliot'     \
+ ]
+]]>
+		</section>
+		<section id="api_calls">
+		<![CDATA[
+This section is not relevant for this use case.
+]]> 
+		</section>
+		<section id="default_endpoints_xml">
+		<![CDATA[
+This is the file where you will fiund the inbound and outbound sides of your integration app.
+This Template has only an [HTTP Listener Connector](http://www.mulesoft.org/documentation/display/current/HTTP+Listener+Connector) as the way to trigger the use case.
+
+$H$H# Inbound Flow
+**HTTP Listener Connector** - Start Report Generation
+
++ `${http.port}` is set as a property to be defined either in a property file or in CloudHub environment variables.
++ The path configured by default is `migrateaccounts` and you are free to change it for the one you prefer.
++ The host name for all endpoints in your CloudHub configuration should be defined as `localhost`. CloudHub will then route requests from your application domain URL to the endpoint.
+
+Flow *triggerFlow* executes a [Batch Job](http://www.mulesoft.org/documentation/display/current/Batch+Processing) defined in *businessLogic.xml*, which handles all the migration logic.
+This flow has Exception Strategy that basically consists of invoking the *defaultChoiseExceptionStrategy* defined in *errorHandling.xml* file.
+]]>
+		</section>
+		<section id="default_business_logic_xml">
+		<![CDATA[
+Functional aspect of the Template is implemented in this XML, directed by one flow responsible of excecuting the logic.
+This file contains a [Batch Job](http://www.mulesoft.org/documentation/display/current/Batch+Processing) which handles all the migration logic.
+]]>
+		</section>
+	</sections>
+</configuration>

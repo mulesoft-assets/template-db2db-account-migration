@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns:db="http://www.mulesoft.org/schema/mule/db"
+	xmlns:context="http://www.springframework.org/schema/context" 
+	xmlns="http://www.mulesoft.org/schema/mule/core" 
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:smtp="http://www.mulesoft.org/schema/mule/smtp" 
+	xmlns:spring="http://www.springframework.org/schema/beans" 
+	xmlns:sfdc="http://www.mulesoft.org/schema/mule/sfdc"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+	xsi:schemaLocation="http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd
+http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-current.xsd
+http://www.mulesoft.org/schema/mule/sfdc http://www.mulesoft.org/schema/mule/sfdc/current/mule-sfdc.xsd
+http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/smtp http://www.mulesoft.org/schema/mule/smtp/current/mule-smtp.xsd
+http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-current.xsd">
+	
+	<!-- This is the main configuration files, you should place here all the Connector configurations and declarations -->
+	
+	<http:listener-config name="HTTP_Listener_Configuration" host="0.0.0.0" port="${http.port}" doc:name="HTTP Listener Configuration"/>
+
+    <context:property-placeholder location="common.properties, mule.${mule.env}.properties"/>
+    
+    <smtp:gmail-connector name="gmailConnector" doc:name="Gmail" validateConnections="true" doc:description="This is the connector used to send email notifications. You should change its configuration to select a different email provider" contentType="text/html"/>
+    
+    <db:generic-config name="Database_A" url="${db.a.jdbcUrl}" driverClassName="com.mysql.jdbc.Driver" doc:name="Database instance of organization A."/>
+    <db:generic-config name="Database_B" url="${db.b.jdbcUrl}" driverClassName="com.mysql.jdbc.Driver" doc:name="Database instance of organization B."/>
+    
+</mule>

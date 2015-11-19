@@ -1,0 +1,161 @@
+<?xml version="1.0" encoding="utf-8" standalone="no"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+
+	<parent>
+		<groupId>org.mule.templates</groupId>
+		<artifactId>templates-tooling-parent-pom</artifactId>
+		<version>1.2.7</version>
+	</parent>
+
+	<modelVersion>4.0.0</modelVersion>
+	<artifactId>template-db2db-account-migration</artifactId>
+	<packaging>mule</packaging>
+	<version>1.2.0-SNAPSHOT</version>
+	<name>template-db2db-account-migration Mule Anypoint Template Project</name>
+
+	<scm>
+		<connection>scm:git:https://github.com/mulesoft/template-db2db-account-migration.git</connection>
+		<developerConnection>scm:git:https://github.com/mulesoft/template-db2db-account-migration.git</developerConnection>
+		<url>https://github.com/mulesoft/template-db2db-account-migration</url>
+		<tag>HEAD</tag>
+	</scm>
+	
+	<properties>
+		<munit.version>1.0.0</munit.version>
+		<mule.munit.support.version>3.7.0</mule.munit.support.version>
+	</properties>
+
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.mule.tools</groupId>
+				<artifactId>maven-mule-plugin</artifactId>
+				<configuration>
+					<copyToAppsDirectory>true</copyToAppsDirectory>
+					<inclusions>
+						<inclusion>
+							<groupId>org.mule.modules</groupId>
+							<artifactId>mule-module-sfdc</artifactId>
+						</inclusion>
+						<inclusion>
+							<groupId>org.mule.modules</groupId>
+							<artifactId>mule-module-extensions-support</artifactId>
+						</inclusion>
+						<inclusion>
+							<groupId>org.mule.modules</groupId>
+							<artifactId>mule-module-extensions-spring-support</artifactId>
+						</inclusion>
+						<inclusion>
+							<groupId>com.mulesoft.munit.utils</groupId>
+							<artifactId>munit-synchronize-module</artifactId>
+						</inclusion>
+					</inclusions>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>com.mulesoft.munit.tools</groupId>
+				<artifactId>munit-maven-plugin</artifactId>
+				<version>${munit.version}</version>
+				<executions>
+					<execution>
+						<id>test</id>
+						<phase>integration-test</phase>
+						<goals>
+							<goal>test</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+		</plugins>
+		<testResources>
+			<testResource>
+				<directory>src/test/munit</directory>
+			</testResource>
+			<testResource>
+				<directory>src/test/resources</directory>
+			</testResource>
+		</testResources>
+	</build>
+
+	<dependencies>
+		<dependency>
+			<groupId>mysql</groupId>
+			<artifactId>mysql-connector-java</artifactId>
+			<version>5.1.26</version>
+		</dependency>
+		<dependency>
+			<groupId>org.mule.modules</groupId>
+			<artifactId>mule-module-spring-config</artifactId>
+			<version>${mule.version}</version>
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.mule.modules</groupId>
+			<artifactId>mule-module-http</artifactId>
+			<version>${mule.version}</version>
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>com.mulesoft.weave</groupId>
+			<artifactId>mule-plugin-weave_2.11</artifactId>
+			<version>${mule.version}</version>
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>com.mulesoft.munit.utils</groupId>
+			<artifactId>munit-dbserver-module</artifactId>
+			<version>${munit.version}</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>com.mulesoft.munit</groupId>
+			<artifactId>mule-munit-support</artifactId>
+			<version>${mule.munit.support.version}</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>com.mulesoft.munit</groupId>
+			<artifactId>munit-runner</artifactId>
+			<version>${munit.version}</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.mule.modules</groupId>
+			<artifactId>mule-module-extensions-support</artifactId>
+			<version>${mule.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.mule.modules</groupId>
+			<artifactId>mule-module-extensions-spring-support</artifactId>
+			<version>${mule.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.mulesoft.munit.utils</groupId>
+			<artifactId>munit-synchronize-module</artifactId>
+			<version>${munit.version}</version>
+		</dependency>
+	</dependencies>
+
+	<repositories>
+		<repository>
+			<id>mulesoft-releases</id>
+			<name>MuleSoft Releases Repository</name>
+			<url>https://repository.mulesoft.org/nexus/content/repositories/releases/</url>
+			<layout>default</layout>
+		</repository>
+		<repository>
+			<id>mule-ee-releases</id>
+			<name>MuleSoft Releases EE Repository</name>
+			<url>https://repository.mulesoft.org/nexus/content/repositories/releases-ee/</url>
+			<layout>default</layout>
+		</repository>
+		<repository>
+			<id>mulesoft-snapshots</id>
+			<name>MuleSoft Snapshots Repository</name>
+			<url>https://repository.mulesoft.org/nexus/content/repositories/snapshots/</url>
+			<layout>default</layout>
+		</repository>
+	</repositories>
+	
+</project>

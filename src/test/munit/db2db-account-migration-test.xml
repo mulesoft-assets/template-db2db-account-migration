@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:dw="http://www.mulesoft.org/schema/mule/ee/dw" 
+	xmlns="http://www.mulesoft.org/schema/mule/core" 
+	xmlns:dbserver="http://www.mulesoft.org/schema/mule/dbserver"
+	xmlns:synchronize="http://www.mulesoft.org/schema/mule/synchronize" 
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" 
+	xmlns:munit="http://www.mulesoft.org/schema/mule/munit" 
+	xmlns:spring="http://www.springframework.org/schema/beans" 
+	xmlns:batch="http://www.mulesoft.org/schema/mule/batch" 
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+	xsi:schemaLocation="http://www.mulesoft.org/schema/mule/munit http://www.mulesoft.org/schema/mule/munit/current/mule-munit.xsd
+http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-current.xsd
+http://www.mulesoft.org/schema/mule/batch http://www.mulesoft.org/schema/mule/batch/current/mule-batch.xsd
+http://www.mulesoft.org/schema/mule/dbserver http://www.mulesoft.org/schema/mule/dbserver/current/mule-dbserver.xsd
+http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/synchronize http://www.mulesoft.org/schema/mule/synchronize/current/mule-synchronize.xsd
+http://www.mulesoft.org/schema/mule/ee/dw http://www.mulesoft.org/schema/mule/ee/dw/current/dw.xsd">
+   
+    <munit:config name="munit" doc:name="MUnit configuration"  mock-inbounds="false" mock-connectors="false"/> 
+   
+    <spring:beans>
+        <spring:import resource="classpath:businessLogic.xml"/>
+        <spring:import resource="classpath:config.xml"/>
+        <spring:import resource="classpath:errorHandling.xml"/>
+    </spring:beans>
+    
+    <dbserver:config name="test-db-a" database="db2db-account-migration-a" sqlFile="test-account-a.sql" doc:name="Test DB Server A"/>
+    <dbserver:config name="test-db-b" database="db2db-account-migration-b" sqlFile="test-account-b.sql" doc:name="Test DB Server B"/>
+    
+    <munit:before-suite name="BeforeSuite" description="MUnit Test">
+        <dbserver:start-db-server config-ref="test-db-a" doc:name="Start DB Server A"/>
+        <dbserver:start-db-server config-ref="test-db-b" doc:name="Start DB Server B"/>
+    </munit:before-suite>
+    
+    <munit:before-test name="BeforeTest" description="Before tests actions">
+        <dw:transform-message doc:name="Prepare data for A">
+            <dw:set-payload><![CDATA[%dw 1.0
+%output application/java
+---
+{
+	annual_revenue      : '2400000',
+	billing_city        : 'Santa Cruz',
+	billing_country     : 'USA',
+	billing_zipcode     : '95060',
+	billing_state       : 'CA',
+	billing_street      : '776 4th Street West',
+	description         : 'Test A',
+	fax_number          : '555-1111',
+	industry            : 'Information Technology',
+	account_name        : 'Test Account A',
+	employee_count      : 80,
+	phone_number        : '555-1234',   // this is different
+	shipping_city       : 'Santa Cruz',
+	shipping_country    : 'USA',
+	shipping_zipcode    : '95060',
+    shipping_state      : 'CA',
+	shipping_street     : '776 4th Street West',
+	web_address         : 'http://test-a.example.com'
+}]]></dw:set-payload>
+        </dw:transform-message>
+        <dbserver:execute config-ref="test-db-a" sql="INSERT INTO Account ( id,   annual_revenue,   billing_city,   billing_country,  billing_zipcode,  billing_state,  billing_street,  description,  fax_number,  industry,  last_update,  account_name,  employee_count, phone_number,  shipping_city,  shipping_country,  shipping_zipcode,  shipping_state,  shipping_street,  web_address)    VALUES (  UUID(),   '#[payload['annual_revenue']]',  '#[payload['billing_city']]',  '#[payload['billing_country']]',   '#[payload['billing_zipcode']]',  '#[payload['billing_state']]',   '#[payload['billing_street']]',   '#[payload['description']]',   '#[payload['fax_number']]',   '#[payload['industry']]',   CURRENT_TIMESTAMP,   '#[payload['account_name']]',   '#[payload['employee_count']]',   '#[payload['phone_number']]', '#[payload['shipping_city']]',  '#[payload['shipping_country']]',   '#[payload['shipping_zipcode']]',   '#[payload['shipping_state']]',   '#[payload['shipping_street']]',  '#[payload['web_address']]' );" doc:name="Insert test data into A"/>
+        <logger message="Test record created in A!" level="INFO" doc:name="Log data created in A"/>
+    </munit:before-test>
+    
+    <munit:after-test name="AfterTest" description="Before tests actions">
+        <dbserver:execute config-ref="test-db-a" sql="DELETE FROM Account;" doc:name="Delete everything from A"/>
+        <dbserver:execute config-ref="test-db-b" sql="DELETE FROM Account;" doc:name="Delete everything from B"/>
+        <logger message="Data in both DBs deleted!" level="INFO" doc:name="Log both DBs cleaned up"/>
+    </munit:after-test>
+    
+    <munit:after-suite name="AfterSuite" description="Ater suite actions">
+        <dbserver:stop-db-server config-ref="test-db-a" doc:name="Stop DB Server A"/>
+        <dbserver:stop-db-server config-ref="test-db-b" doc:name="Stop DB Server B"/>
+    </munit:after-suite>
+    
+    <munit:test name="insertTest" description="Test">
+        <synchronize:run-and-wait doc:name="Synchronize" timeout="240000">
+            <batch:execute name="migrateAccountsBatch" doc:name="Run Batch migrateAccountsBatch"/>
+        </synchronize:run-and-wait>
+        <dbserver:execute-query config-ref="test-db-b" sql="SELECT * FROM Account" doc:name="Query database B for Account"/>
+        <logger message="Query from B: #[payload]" level="INFO" doc:name="Log data from B"/>
+        <munit:assert-true message="There should be 1 account in B and there are #[payload.size()] accounts." condition="#[payload.size() == 1]" doc:name="There should be 1 Account"/>
+        <munit:assert-on-equals message="There should be 1 account in B and there are #[payload.size()] accounts." actualValue="#[payload[0].WEBSITE]" expectedValue="http://test-a.example.com" doc:name="The Website should match"/>
+        <munit:assert-on-equals message="Account representative should be correct" expectedValue="Daniel Craig" actualValue="#[payload[0].ACCOUNTREPRESENTATIVE]" doc:name="Account representative should be correct"/>
+    </munit:test>
+    
+     <munit:test name="updateTest" description="Test">
+        <dw:transform-message doc:name="Prepare data in B">
+            <dw:set-payload><![CDATA[%dw 1.0
+%output application/java
+---
+{
+	AnnualRevenue      : '2400000',
+	BillingCity        : 'Santa Cruz',
+	BillingCountry     : 'USA',
+	BillingZipcode     : '95060',
+	BillingState       : 'CA',
+	BillingStreet      : '776 4th Street West',
+	Description        : 'Test A',
+	Fax                : '555-1111',
+	Industry           : 'Information Technology',
+	Name               : 'Test Account A',
+	NumberOfEmployees  : 80,
+	Phone              : '555-2222',
+	ShippingCity       : 'Santa Cruz',
+	ShippingCountry    : 'USA',
+	ShippingPostalCode : '95060',
+    ShippingState      : 'CA',
+	ShippingStreet     : '776 4th Street West',
+	Website            : 'http://test-a.example.com'
+}]]></dw:set-payload>
+        </dw:transform-message>
+        <dbserver:execute config-ref="test-db-b" sql="INSERT INTO Account (  Id,  AnnualRevenue,  BillingCity,  BillingCountry,  BillingPostalCode,  BillingState,  BillingStreet,  Description,  Fax,  Industry,  LastModifiedDate,  Name,  NumberOfEmployees,  Phone,  ShippingCity,  ShippingCountry,  ShippingPostalCode,  ShippingState,  ShippingStreet,  Website ) VALUES (  UUID(),  '#[payload['AnnualRevenue']]',  '#[payload['BillingCity']]',  '#[payload['BillingCountry']]',  '#[payload['BillingPostalCode']]',  '#[payload['BillingState']]',  '#[payload['BillingStreet']]',  '#[payload['Description']]',  '#[payload['Fax']]',  '#[payload['Industry']]',  CURRENT_TIMESTAMP(),  '#[payload['Name']]',  #[payload['NumberOfEmployees']],  '#[payload['Phone']]',  '#[payload['ShippingCity']]',  '#[payload['ShippingCountry']]',  '#[payload['ShippingPostalCode']]',  '#[payload['ShippingState']]',  '#[payload['ShippingStreet']]',  '#[payload['Website']]' );" doc:name="Insert test data into B"/>
+        <logger message="Test record created in B!" level="INFO" doc:name="Log inser finished"/>
+        <synchronize:run-and-wait doc:name="Synchronize" timeout="240000">
+            <batch:execute name="migrateAccountsBatch" doc:name="Run Batch migrateAccountsBatch"/>
+        </synchronize:run-and-wait>
+        <dbserver:execute-query config-ref="test-db-b" sql="SELECT * FROM Account" doc:name="Query database B for Account"/>
+        <logger message="#[payload]" level="INFO" doc:name="Log returned data"/>
+        <munit:assert-true message="There should be 1 account in B and there are #[payload.size()] accounts." condition="#[payload.size() == 1]" doc:name="There should be 1 Account"/>
+        <munit:assert-on-equals message="There should be 1 account in B and there are #[payload.size()] accounts." actualValue="#[payload[0].WEBSITE]" expectedValue="http://test-a.example.com" doc:name="The Website should match"/>
+        <munit:assert-on-equals message="The Phone number should be updated." expectedValue="555-1234" actualValue="#[payload[0].PHONE]" doc:name="The Phone should be updated"/>
+        <munit:assert-on-equals message="Account representative should be correct" expectedValue="Daniel Craig" actualValue="#[payload[0].ACCOUNTREPRESENTATIVE]" doc:name="Account representative should be correct"/>
+    </munit:test>
+    
+    
+    
+</mule>
