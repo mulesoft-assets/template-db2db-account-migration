@@ -36,6 +36,7 @@ http://www.mulesoft.org/schema/mule/ee/dw http://www.mulesoft.org/schema/mule/ee
         <batch:threading-profile poolExhaustedAction="WAIT"/>
         <batch:input>
             <set-variable variableName="zip2accountRep" value="#[${zip2accountRep}]" doc:name="load zip2accountRep"/>
+
             <db:select config-ref="Database_A" doc:name="Select Accounts from Database A">
                 <db:parameterized-query><![CDATA[SELECT * FROM Account ORDER BY last_update ASC]]></db:parameterized-query>
             </db:select>
@@ -83,6 +84,7 @@ payload map {
 	AccountRepresentative : getByKey(flowVars.zip2accountRep, $.billing_zipcode) default null
 }]]></dw:set-payload>
                     </dw:transform-message>
+
 
 
                     <db:update config-ref="Database_B" bulkMode="true" doc:name="Update Accounts in Database B">
@@ -142,9 +144,9 @@ payload map {
 	ShippingStreet     : $.shipping_street,
 	Website            : $.web_address,
 	AccountRepresentative : getByKey(flowVars.zip2accountRep, $.billing_zipcode) default null
-
 }]]></dw:set-payload>
                     </dw:transform-message>
+
 
                     <db:insert config-ref="Database_B" bulkMode="true" doc:name="Insert Accounts to Database B">
                         <db:parameterized-query><![CDATA[INSERT INTO Account (
