@@ -10,6 +10,7 @@ CREATE TABLE Account (
   fax_number varchar(255) DEFAULT NULL,
   industry varchar(255) DEFAULT NULL,
   last_update timestamp AS CURRENT_TIMESTAMP(),
+  last_update_by varchar(255) AS CURRENT_USER(),
   account_name varchar(255) DEFAULT NULL,
   employee_count int(11) DEFAULT NULL,
   phone_number varchar(255) DEFAULT NULL,

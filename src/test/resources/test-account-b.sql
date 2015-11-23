@@ -11,6 +11,7 @@ CREATE TABLE Account (
   Fax varchar(255) DEFAULT NULL,
   Industry varchar(255) DEFAULT NULL,
   LastModifiedDate timestamp AS CURRENT_TIMESTAMP(),
+  LastModifiedById varchar(255) AS CURRENT_USER(),
   Name varchar(255) DEFAULT NULL,
   NumberOfEmployees int(11) DEFAULT NULL,
   Phone varchar(255) DEFAULT NULL,

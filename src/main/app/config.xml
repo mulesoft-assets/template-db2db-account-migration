@@ -19,7 +19,7 @@ http://www.springframework.org/schema/context http://www.springframework.org/sch
 	
 	<!-- This is the main configuration files, you should place here all the Connector configurations and declarations -->
 	
-	<http:listener-config name="HTTP_Listener_Configuration" host="0.0.0.0" port="${http.port}" doc:name="HTTP Listener Configuration"/>
+	<http:listener-config name="HTTP" host="0.0.0.0" port="${http.port}" doc:name="HTTP Listener Configuration"/>
 
     <context:property-placeholder location="common.properties, mule.${mule.env}.properties"/>
     
