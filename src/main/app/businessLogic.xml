@@ -29,17 +29,17 @@ http://www.mulesoft.org/schema/mule/ee/dw http://www.mulesoft.org/schema/mule/ee
 
             <db:select config-ref="Database_A" doc:name="Select Accounts from Database A">
                 <db:parameterized-query><![CDATA[SELECT * FROM Account ORDER BY last_update ASC]]></db:parameterized-query>
+
             </db:select>
 
         </batch:input> 
         <batch:process-records>
             <batch:step name="getAccountInBStep">
                 <enricher source="#[payload.isEmpty() ? null : payload[0].Id]" target="#[payload.IdInB]" doc:name="Enrich payload with Id">
-                    <processor-chain doc:name="Processor Chain">
-                        <db:select config-ref="Database_B" doc:name="Select Account from Database B">
-                            <db:parameterized-query><![CDATA[SELECT Id FROM Account WHERE Name = #[payload['account_name']]]]></db:parameterized-query>
-                        </db:select>
-                    </processor-chain>
+                    <db:select config-ref="Database_B" doc:name="Select Account from Database B">
+                        <db:parameterized-query><![CDATA[SELECT Id FROM Account WHERE Name = #[payload['account_name']]]]></db:parameterized-query>
+                    </db:select>
+
 
                 </enricher>
             </batch:step>
@@ -47,7 +47,7 @@ http://www.mulesoft.org/schema/mule/ee/dw http://www.mulesoft.org/schema/mule/ee
 
             <batch:step name="updateAccountsInBStep" accept-expression="payload.IdInB != null">
                 <batch:commit size="${page.size}" doc:name="Batch Commit">
-                    <dw:transform-message doc:name="Map to Map">
+                    <dw:transform-message doc:name="Transform Accounts A to Accounts B">
                         <dw:set-payload><![CDATA[%dw 1.0
 %output application/java
 ---
@@ -112,7 +112,7 @@ WHERE Id = #[payload['Id']]]]></db:parameterized-query>
             <batch:step name="insertAccountsToBStep" accept-expression="payload.IdInB == null">
                 <batch:commit size="${page.size}" doc:name="Batch Commit">
 
-                    <dw:transform-message doc:name="Map to Map">
+                    <dw:transform-message doc:name="Transform Accounts A to Accounts B">
                         <dw:set-payload><![CDATA[%dw 1.0
 %output application/java
 ---
