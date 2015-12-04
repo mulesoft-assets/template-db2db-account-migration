@@ -10,14 +10,14 @@
 	<modelVersion>4.0.0</modelVersion>
 	<artifactId>template-db2db-account-migration</artifactId>
 	<packaging>mule</packaging>
-	<version>1.2.1</version>
+	<version>1.2.2-SNAPSHOT</version>
 	<name>template-db2db-account-migration Mule Anypoint Template Project</name>
 
 	<scm>
 		<connection>scm:git:https://github.com/mulesoft/template-db2db-account-migration.git</connection>
 		<developerConnection>scm:git:https://github.com/mulesoft/template-db2db-account-migration.git</developerConnection>
 		<url>https://github.com/mulesoft/template-db2db-account-migration</url>
-		<tag>v1.2.1</tag>
+		<tag>HEAD</tag>
 	</scm>
 	
 	<properties>
