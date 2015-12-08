@@ -5,19 +5,19 @@
 	</placeholders>
 	<sections>
 		<section id="use_case">
-I want to migrate accounts from one database to another.
+I want to migrate a large set of accounts from one database to another.
 
-This Template should serve as a foundation for the process of migrating accounts from Database A to Database B, being able to specify filtering criteria and desired behavior when an account already exists in the Database B. 
+This Template should serve as a foundation for the process of migrating accounts from Database A to Database B, it also provides the ablity to specify the desired behavior with a filtering criteria when an account already exists in the Database B.
 
-As implemented, this Template leverage the [Batch Module](http://www.mulesoft.org/documentation/display/current/Batch+Processing).
+This Template leverages the [Batch Module](http://www.mulesoft.org/documentation/display/current/Batch+Processing).
 The batch job is divided in Input, Process and On Complete stages.
 During the Input stage the Template will select all the existing Accounts that match the filtering criteria from Database A.
-The last step of the Process stage will create / update the accounts in Database B. In addition, it will assign Account Representatives by the zip code of the source Account.
-Finally during the On Complete stage the Template will both output statistics data into the console and send a notification email with the results of the batch execution. 
+The last step of the Process stage will create / update the accounts in Database B. In addition, it performs a lookup and assigns Account Representatives using the zip code of the source Account.
+Finally during the On Complete stage the Template will show statistics of the data transfer in the studio console and send out a notification email with the results of the batch execution. 
 		</section>
 		<section id="considerations">
 <![CDATA[
-**Note:** This particular Anypoint Template illustrate the migration use case between two Databases, thus it requires a Database instances to work.
+**Note:** This particular Anypoint Template illustrates the migration use case between two Databases, thus it requires a Database instances to work.
 The Anypoint Template comes packaged with a SQL script to create the DB table that it uses. 
 It is the user responsibility to use the scripts to create the tables in an available schema and change the configuration accordingly.
 The SQL script files can be found in [src/main/resources/](../master/src/main/resources/)

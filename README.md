@@ -27,7 +27,7 @@ Please review the terms of the license before downloading and using this templat
 # Use Case <a name="usecase"/>
 I want to migrate a large set of accounts from one database to another.
 
-This Template should serve as a foundation for the process of migrating accounts from Database A to Database B, it also provides the ablity to specify the desired behavior with a filtering criteria when an account already exists in the Database B. 
+This Template should serve as a foundation for the process of migrating accounts from Database A to Database B, it also provides the ablity to specify the desired behavior with a filtering criteria when an account already exists in the Database B.
 
 This Template leverages the [Batch Module](http://www.mulesoft.org/documentation/display/current/Batch+Processing).
 The batch job is divided in Input, Process and On Complete stages.
