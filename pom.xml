@@ -4,13 +4,13 @@
 	<parent>
 		<groupId>org.mule.templates</groupId>
 		<artifactId>templates-tooling-parent-pom</artifactId>
-		<version>1.2.7</version>
+		<version>1.3.1</version>
 	</parent>
 
 	<modelVersion>4.0.0</modelVersion>
 	<artifactId>template-db2db-account-migration</artifactId>
 	<packaging>mule</packaging>
-	<version>1.2.4-SNAPSHOT</version>
+	<version>1.3.0-SNAPSHOT</version>
 	<name>template-db2db-account-migration Mule Anypoint Template Project</name>
 
 	<scm>
@@ -19,11 +19,6 @@
 		<url>https://github.com/mulesoft/template-db2db-account-migration</url>
 		<tag>HEAD</tag>
 	</scm>
-	
-	<properties>
-		<munit.version>1.0.0</munit.version>
-		<mule.munit.support.version>3.7.0</mule.munit.support.version>
-	</properties>
 
 	<build>
 		<plugins>
