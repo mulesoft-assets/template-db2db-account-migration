@@ -1,0 +1,19 @@
+{
+  "domain": "default",
+  "configs": [
+    "template-db2db-account-migration.xml"
+  ],
+  "redeploymentEnabled": true,
+  "name": "template-db2db-account-migration",
+  "minMuleVersion": "4.0.0-rc-SNAPSHOT",
+  "classLoaderModelLoaderDescriptor": {
+    "id": "mule",
+    "attributes": {
+      "exportedResources": []
+    }
+  },
+  "bundleDescriptorLoader": {
+    "id": "mule",
+    "attributes": {}
+  }
+}

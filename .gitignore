@@ -23,12 +23,14 @@ tmp/**/*
 local.properties
 .settings/
 .loadpath
-# You may want to remove the sharp symbols here if you are using Maven 
+# Recommended for Maven based projects 
 .project
 .classpath
 
 # External tool builders
 .externalToolBuilders/
+.idea
+*.iml
 
 # Locally stored "Eclipse launch configurations"
 *.launch
@@ -42,19 +44,4 @@ local.properties
 # --------------- #
 # Studio-specific #
 # --------------- #
-.studio/
-/flows/
 target/
-**/*.mflow
-
-# --------------- #
-# Mule-specific #
-# --------------- #
-.mule/
-
-# --------------------------------------- #
-# Test credentials to be use locally only #
-# --------------------------------------- #
-pom.xml.releaseBackup
-
-release.properties
