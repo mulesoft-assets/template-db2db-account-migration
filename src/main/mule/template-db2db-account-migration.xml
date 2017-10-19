@@ -1,0 +1,276 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:salesforce="http://www.mulesoft.org/schema/mule/salesforce"
+	xmlns:tls="http://www.mulesoft.org/schema/mule/tls" xmlns:email="http://www.mulesoft.org/schema/mule/email"
+	xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:db="http://www.mulesoft.org/schema/mule/db"
+	xmlns:batch="http://www.mulesoft.org/schema/mule/batch" xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/batch http://www.mulesoft.org/schema/mule/batch/current/mule-batch.xsd
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/email http://www.mulesoft.org/schema/mule/email/current/mule-email.xsd
+http://www.mulesoft.org/schema/mule/tls http://www.mulesoft.org/schema/mule/tls/current/mule-tls.xsd
+http://www.mulesoft.org/schema/mule/salesforce http://www.mulesoft.org/schema/mule/salesforce/current/mule-salesforce.xsd">
+
+	<http:listener-config name="HTTP_Listener_config"
+		doc:name="HTTP Listener config" doc:id="c88ddd0b-4a5e-4a08-97ad-07840a2ea522">
+		<http:listener-connection host="0.0.0.0"
+			port="${http.port}" />
+	</http:listener-config>
+
+	<db:config name="Database_Config_A" doc:name="Database Config"
+		doc:id="6e89dec2-95e1-4ee2-a6c1-d722c45f3d20">
+		<db:my-sql-connection host="${db.a.host}" port="${db.a.port}"
+			user="${db.a.user}" password="${db.a.password}" database="${db.a.name}" />
+	</db:config>
+
+	<db:config name="Database_Config_B" doc:name="Database Config"
+		doc:id="6e89dec2-95e1-4ee2-a6c1-d722c45f3d20">
+		<db:my-sql-connection host="${db.b.host}" port="${db.b.port}"
+			user="${db.b.user}" password="${db.b.password}" database="${db.b.name}" />
+	</db:config>
+
+	<email:smtp-config name="Gmail_SMTP" doc:name="Email SMTP"
+		doc:id="8ba14ccd-a5b8-43a8-8281-cd433c852f2b">
+		<email:smtps-connection host="${smtp.host}"
+			port="${smtp.port}" user="${smtp.user}" password="${smtp.password}"
+			tlsContext="TLS_Context" />
+	</email:smtp-config>
+	<tls:context name="TLS_Context" doc:name="TLS Context"
+		doc:id="233e532c-8296-4ddd-ac67-e2b7984b3609">
+		<tls:trust-store insecure="true" />
+	</tls:context>
+	<configuration-properties file="mule-artifact.properties"
+		doc:name="Configuration properties" doc:id="9a71fae5-bab3-4207-8d25-d617506f0a07" />
+	<configuration-properties file="common.properties"
+		doc:name="Configuration properties" doc:id="e55f8f1e-a2b7-47bb-8426-a1bb39783cfa" />
+	<configuration-properties file="mule.${mule.env}.properties"
+		doc:name="Configuration properties" doc:id="078fe3b6-076c-44a0-a083-3668a7debcff" />
+	<flow name="template-db2db-account-migrationFlow" doc:id="5aa7011d-8abd-453d-9459-c7322838f14a">
+		<http:listener config-ref="HTTP_Listener_config" path="/migrate"
+			doc:name="/migrate (Migrate accounts listener)" doc:id="6dacdf72-e550-4229-a81a-5ce802a114c1" />
+		<db:select config-ref="Database_Config_A" doc:name="Select all accounts from database A"
+			doc:id="b16c0217-e1ba-4e19-bb8b-6c11da210c1e">
+			<db:sql>SELECT * FROM Account ORDER BY last_update ASC</db:sql>
+		</db:select>
+		<batch:job jobName="template-db2db-account-migrationBatch_Job"
+			doc:id="af55c5cf-807b-4582-9868-66f144b0a8e9">
+			<batch:process-records>
+				<batch:step doc:id="b2f6d0eb-1dd2-4281-bd99-14cd169d9976"
+					name="selectAccountFromB">
+					<db:select config-ref="Database_Config_B"
+						doc:name="Select account from database B by name" doc:id="ea180723-75eb-4fcd-84e0-d9877b28fa48"
+						target="IdInB" targetValue="#[payload[0].Id]">
+						<db:sql>SELECT Id FROM Account WHERE Name = :name</db:sql>
+						<db:input-parameters><![CDATA[#[{'name' : payload.account_name}]]]></db:input-parameters>
+
+					</db:select>
+					<ee:transform doc:name="Push Id of account from database B to payload"
+						doc:id="1d5b7cc2-9ddb-4b89-a8a1-609ed808e03a">
+						<ee:message>
+							<ee:set-payload><![CDATA[%dw 2.0
+output application/java
+---
+payload ++ {IdInB: vars.IdInB}]]></ee:set-payload>
+						</ee:message>
+					</ee:transform>
+				</batch:step>
+				<batch:step name="updateStep" doc:id="e1702a0d-b993-4a37-8116-8473a7c564e2"
+					acceptExpression="payload.IdInB != null">
+					<batch:aggregator doc:name="Batch Aggregator"
+						doc:id="ca478779-cd13-4594-b0d1-30aee5a5cba2" size="5">
+						<ee:transform doc:name="Map fields from database A to fields of database B"
+							doc:id="bc5c1683-cb2b-40be-9f10-47100e9ee673">
+							<ee:message>
+								<ee:set-payload><![CDATA[%dw 2.0
+output application/java
+---
+payload map {
+	IdInB                 : $.IdInB,
+	AnnualRevenue         : $.annual_revenue,
+	BillingCity           : $.billing_city,
+	BillingCountry        : $.billing_country,
+	BillingPostalCode     : $.billing_zipcode,
+	BillingState          : $.billing_state,
+	BillingStreet         : $.billing_street,
+	Description           : $.description,
+	Fax                   : $.fax_number,
+	Industry              : $.industry,
+	Name                  : $.account_name,
+	NumberOfEmployees     : $.employee_count,
+	Phone                 : $.phone_number,
+	ShippingCity          : $.shipping_city,
+	ShippingCountry       : $.shipping_country,
+	ShippingPostalCode    : $.shipping_zipcode,
+    ShippingState         : $.shipping_state,
+	ShippingStreet        : $.shipping_street,
+	Website               : $.web_address,
+}]]></ee:set-payload>
+							</ee:message>
+						</ee:transform>
+						<db:bulk-update config-ref="Database_Config_B"
+							doc:name="Bulk update of accounts from database B" doc:id="b4701ae7-61dd-41ab-b626-982f2417a351">
+
+							<db:sql>UPDATE Account SET
+								AnnualRevenue = :AnnualRevenue,
+								BillingCity = :BillingCity,
+								BillingCountry = :BillingCountry,
+								BillingPostalCode = :BillingPostalCode,
+								BillingState =
+								:BillingState,
+								BillingStreet = :BillingStreet,
+								Description =
+								:Description,
+								Fax = :Fax,
+								Industry = :Industry,
+								LastModifiedDate =
+								CURRENT_TIMESTAMP(),
+								LastModifiedById = CURRENT_USER(),
+								Phone =
+								:Phone,
+								ShippingCity = :ShippingCity,
+								ShippingCountry =
+								:ShippingCountry,
+								ShippingPostalCode = :ShippingPostalCode,
+								ShippingState = :ShippingState,
+								ShippingStreet = :ShippingStreet,
+								Website = :Website
+								WHERE Id = :IdInB
+							</db:sql>
+						</db:bulk-update>
+					</batch:aggregator>
+				</batch:step>
+				<batch:step name="insertStep" doc:id="0635642e-6535-4e67-a6e7-68e2b4a4b99f"
+					acceptExpression="payload.IdInB == null">
+					<batch:aggregator doc:name="Batch Aggregator"
+						doc:id="86dd7c8e-c76c-4167-8c04-c633833b764a" size="5">
+						<ee:transform doc:name="Map fields from database A to fields of database B"
+							doc:id="bc5c1683-cb2b-40be-9f10-47100e9ee673">
+							<ee:message>
+								<ee:set-payload><![CDATA[%dw 2.0
+output application/java
+---
+payload map {
+	AnnualRevenue         : $.annual_revenue,
+	BillingCity           : $.billing_city,
+	BillingCountry        : $.billing_country,
+	BillingPostalCode     : $.billing_zipcode,
+	BillingState          : $.billing_state,
+	BillingStreet         : $.billing_street,
+	Description           : $.description,
+	Fax                   : $.fax_number,
+	Industry              : $.industry,
+	Name                  : $.account_name,
+	NumberOfEmployees     : $.employee_count,
+	Phone                 : $.phone_number,
+	ShippingCity          : $.shipping_city,
+	ShippingCountry       : $.shipping_country,
+	ShippingPostalCode    : $.shipping_zipcode,
+    ShippingState         : $.shipping_state,
+	ShippingStreet        : $.shipping_street,
+	Website               : $.web_address,
+}]]></ee:set-payload>
+							</ee:message>
+						</ee:transform>
+						<db:bulk-insert config-ref="Database_Config_B"
+							doc:name="Bulk insert of accounts to database B" doc:id="b87bbcfa-92c5-43ac-8351-ac3ee341450c">
+							<db:sql>INSERT INTO Account (
+								Id,
+								AnnualRevenue,
+								BillingCity,
+								BillingCountry,
+								BillingPostalCode,
+								BillingState,
+								BillingStreet,
+								Description,
+								Fax,
+								Industry,
+								Name,
+								NumberOfEmployees,
+								Phone,
+								ShippingCity,
+								ShippingCountry,
+								ShippingPostalCode,
+								ShippingState,
+								ShippingStreet
+								) VALUES (
+								UUID(),
+								:AnnualRevenue,
+								:BillingCity,
+								:BillingCountry,
+								:BillingPostalCode,
+								:BillingState,
+								:BillingStreet,
+								:Description,
+								:Fax,
+								:Industry,
+								:Name,
+								:NumberOfEmployees,
+								:Phone,
+								:ShippingCity,
+								:ShippingCountry,
+								:ShippingPostalCode,
+								:ShippingState,
+								:ShippingStreet
+								)
+							</db:sql>
+						</db:bulk-insert>
+					</batch:aggregator>
+				</batch:step>
+
+
+			</batch:process-records>
+			<batch:on-complete>
+				<scatter-gather doc:name="Scatter-Gather"
+					doc:id="ef2964ef-0b85-4c6c-a5ee-b834df639e7b">
+					<route>
+						<logger level="INFO" doc:name="Migration process has finished!"
+							doc:id="b7575d38-7dbd-4602-9186-1bbb25234896" message="Migration process has finished!" />
+					</route>
+					<route>
+						<ee:transform doc:name="Prepare migration result email"
+							doc:id="c84b4bc4-5a65-41c1-9d0c-f1ebd3d8db7a">
+							<ee:message>
+								<ee:set-payload><![CDATA[%dw 2.0
+output text/plain
+---
+"Migration Report: \n"
+ 
+++ "\n Time [milliseconds]: " 		++ payload.elapsedTimeInMillis
+++ "\n Total Records: "				++ payload.totalRecords
+++ "\n Successful Records: "		++ payload.successfulRecords
+++ "\n Failed Records: "			++ payload.failedRecords
+++ "\n Loaded Records: "			++ payload.loadedRecords
+++ "\n Processed Records: " 		++ payload.processedRecords]]></ee:set-payload>
+							</ee:message>
+						</ee:transform>
+						<email:send config-ref="Gmail_SMTP" doc:name="Send migration result email"
+							doc:id="5896eaa9-dd10-47a2-a6fc-6319b11dbd06" fromAddress="${mail.from}"
+							subject="Accounts has been migrated">
+							<email:to-addresses>
+								<email:to-address value="${mail.to}" />
+							</email:to-addresses>
+						</email:send>
+					</route>
+				</scatter-gather>
+			</batch:on-complete>
+		</batch:job>
+		<logger level="INFO" doc:name="Log - Migration process has started!"
+			doc:id="673c18b0-db38-44f6-95ef-69edd1e75ed6" message="Migration process has started!" />
+		<ee:transform doc:name="Build response"
+			doc:id="ce8333a7-af69-4d6c-b9e8-3b65ebd68114">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"message": "Migration process has started!"
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+
+</mule>
