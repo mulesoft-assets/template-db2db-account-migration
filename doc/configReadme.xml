@@ -27,7 +27,7 @@ This template is customized for MySQL. To use it with different SQL implementati
 * update SQL script dialect to desired one
 * replace MySQL driver library (or add another) dependency to desired one in [POM](pom.xml)
 * update Database Config to suitable connection instead of `db:my-sql-connection` in global elements (config.xml)
-* update JDBC URL in `mule.*.properties` file
+* update connection configurations in `mule.*.properties` file
 ]]>
 		</section>
 		<section id="run_it">
