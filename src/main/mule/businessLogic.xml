@@ -23,7 +23,7 @@ http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/
 					name="selectAccountFromB">
 					<db:select config-ref="Database_Config_B"
 						doc:name="Select account from database B by name" doc:id="ea180723-75eb-4fcd-84e0-d9877b28fa48"
-						target="IdInB" targetValue="#[payload[0].Id]">
+						target="IdInB">
 						<db:sql>SELECT Id FROM Account WHERE Name = :name</db:sql>
 						<db:input-parameters><![CDATA[#[{'name' : payload.account_name}]]]></db:input-parameters>
 
@@ -34,14 +34,14 @@ http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/
 							<ee:set-payload><![CDATA[%dw 2.0
 output application/java
 ---
-payload ++ {IdInB: vars.IdInB}]]></ee:set-payload>
+payload ++ {IdInB: vars.IdInB[0].Id}]]></ee:set-payload>
 						</ee:message>
 					</ee:transform>
 				</batch:step>
 				<batch:step name="updateStep" doc:id="e1702a0d-b993-4a37-8116-8473a7c564e2"
 					acceptExpression="payload.IdInB != null">
 					<batch:aggregator doc:name="Batch Aggregator"
-						doc:id="ca478779-cd13-4594-b0d1-30aee5a5cba2" size="5">
+						doc:id="ca478779-cd13-4594-b0d1-30aee5a5cba2" size="10">
 						<ee:transform doc:name="Map fields from database A to fields of database B"
 							doc:id="bc5c1683-cb2b-40be-9f10-47100e9ee673">
 							<ee:message>

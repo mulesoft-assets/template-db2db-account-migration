@@ -10,11 +10,7 @@ http://www.mulesoft.org/schema/mule/tls http://www.mulesoft.org/schema/mule/tls/
 http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
 http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd">
 	
-	<db:config name="Database_Config_A" doc:name="Database Config"
-		doc:id="6e89dec2-95e1-4ee2-a6c1-d722c45f3d20">
-		<db:my-sql-connection host="${db.a.host}" port="${db.a.port}"
-			user="${db.a.user}" password="${db.a.password}" database="${db.a.databasename}" />
-	</db:config>
+
 
 	<db:config name="Database_Config_B" doc:name="Database Config"
 		doc:id="6e89dec2-95e1-4ee2-a6c1-d722c45f3d20">
@@ -35,5 +31,9 @@ http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/cu
 	<configuration-properties doc:name="Configuration properties" doc:id="7584fb1d-2fa2-445a-b949-eed01f5785bd" file="common.properties" />
 	<configuration-properties doc:name="Configuration properties" doc:id="86e0eb9d-cf2e-451a-9e09-b4afdf13e0e9" file="mule.${mule.env}.properties" />
 	<configuration-properties doc:name="Configuration properties" doc:id="0abdf143-d5d1-4168-bdbd-7e3722442725" file="mule-artifact.properties" />
+	<db:config name="Database_Config_A" doc:name="Database Config" doc:id="058cfbf2-857b-4475-b8db-98cb6bb8b123" >
+		<db:my-sql-connection host="${db.a.host}" port="${db.a.port}"
+			user="${db.a.user}" password="${db.a.password}" database="${db.a.databasename}" />
+	</db:config>
 	
 </mule>
