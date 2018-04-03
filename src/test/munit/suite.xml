@@ -1,0 +1,235 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:db="http://www.mulesoft.org/schema/mule/db"
+	xmlns:scripting="http://www.mulesoft.org/schema/mule/scripting"
+	xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:munit="http://www.mulesoft.org/schema/mule/munit" 
+	xmlns:munit-tools="http://www.mulesoft.org/schema/mule/munit-tools"
+	xmlns="http://www.mulesoft.org/schema/mule/core" 
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xsi:schemaLocation="
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd 
+http://www.mulesoft.org/schema/mule/scripting http://www.mulesoft.org/schema/mule/scripting/current/mule-scripting.xsd 
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd 
+		http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+		http://www.mulesoft.org/schema/mule/munit http://www.mulesoft.org/schema/mule/munit/current/mule-munit.xsd
+		http://www.mulesoft.org/schema/mule/munit-tools  http://www.mulesoft.org/schema/mule/munit-tools/current/mule-munit-tools.xsd">
+		
+	<munit:config name="suite.xml" />
+	<configuration-properties doc:name="Configuration properties" doc:id="c382dc50-b83c-41be-ad31-42ccb929d758" file="mule.${mule.env}.properties" />
+	<configuration-properties doc:name="Configuration properties" doc:id="59fef852-f885-4b1e-baac-96bce830be9f" file="mule-artifact.properties" />
+	<configuration-properties doc:name="Configuration properties" doc:id="a0f29785-69a4-48b7-8ef5-410c95ee7ff2" file="common.properties" />
+	<munit:before-test name="test-suiteBefore_Test" description="Before tests actions" doc:id="0478868a-084a-4911-8553-8a711fa4adcc" >
+		<ee:transform doc:name="Prepare account for insert to database A" doc:id="6867a4cb-f098-4d71-b086-22d7594f6528" >
+			<ee:message >
+			</ee:message>
+			<ee:variables >
+				<ee:set-variable variableName="account" ><![CDATA[%dw 2.0
+output application/java
+---
+{
+	AnnualRevenue         : "5000.0",
+	BillingCity           : "San Francisco",
+	BillingCountry        : "USA",
+	BillingPostalCode     : "09904",
+	BillingState          : "CA",
+	BillingStreet         : "Main Street 25",
+	Description           : "information",
+	Fax                   : "+421995555",
+	Industry              : "IT",
+	Name                  : "MUnitTest",
+	NumberOfEmployees     : 1000,
+	Phone                 : "+421995555",
+	ShippingCity          : "San Francisco",
+	ShippingCountry       : "USA",
+	ShippingPostalCode    : "09904",
+    ShippingState         : "CA",
+	ShippingStreet        : "Main Street 44",
+	Website               : "http://www.test.com"
+}
+]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<db:insert doc:name="insert account to database A" doc:id="a0c9d6c5-4ff1-4745-9ced-90e039d51d7e" config-ref="Database_Config_A">
+							<db:sql>INSERT INTO Account (
+								id,
+							    annual_revenue,
+  								billing_city,
+  								billing_country,
+  								billing_zipcode,
+  								billing_state,
+  								billing_street,
+  								description,
+  								fax_number,
+  								industry,
+  								account_name,
+  								employee_count,
+  								phone_number,
+  								shipping_city,
+  								shipping_country,
+  								shipping_zipcode,
+  								shipping_state,
+  								shipping_street,
+  								web_address
+								) VALUES (
+								UUID(),
+								:AnnualRevenue,
+								:BillingCity,
+								:BillingCountry,
+								:BillingPostalCode,
+								:BillingState,
+								:BillingStreet,
+								:Description,
+								:Fax,
+								:Industry,
+								:Name,
+								:NumberOfEmployees,
+								:Phone,
+								:ShippingCity,
+								:ShippingCountry,
+								:ShippingPostalCode,
+								:ShippingState,
+								:ShippingStreet,
+								:Website
+								)
+							</db:sql>
+			<db:input-parameters ><![CDATA[#[vars.account]]]></db:input-parameters>			
+		</db:insert>
+		<munit-tools:mock-when doc:name="Mock email processor to avoid sending email" doc:id="877fd0bd-12b9-45d1-a881-4a87a238b093" processor="email:send">
+				<munit-tools:then-return />
+			</munit-tools:mock-when>
+	</munit:before-test>
+	<munit:test name="suiteCreateTest" description="MUnit Test" doc:id="33546fac-062b-4569-a77c-04b4907fbf46"  >
+		<munit:execution >
+			<flow-ref doc:name="businesslogicFlow" doc:id="4ef21335-1352-4597-9a8b-e0035cd71a83" name="businesslogicFlow"/>
+			<scripting:execute doc:name="Sleep for 10 seconds until the processing is completed" doc:id="e754f432-9e71-4aa6-944a-b673a61d297e" engine="groovy">
+				<scripting:code >sleep(10000)</scripting:code>
+			</scripting:execute>
+			<db:select doc:id="16e8f377-03f5-4159-847d-78dac4ad86ef" doc:name="Select Account from database B" config-ref="Database_Config_B">
+				<db:sql >SELECT Id FROM Account WHERE Name = :name</db:sql>
+				<db:input-parameters ><![CDATA[#[{'name' : vars.account.Name}]]]></db:input-parameters>
+			</db:select>
+			<munit-tools:assert-that doc:name="Assert that we found created Account" doc:id="e78015f7-3f7a-46f7-954d-29cadd638d91" expression="#[sizeOf(payload)]" is="#[MunitTools::equalTo(1)]" />
+			<db:delete doc:name="Delete migrated Accounts from database B" doc:id="e9582c8b-c159-4548-aaca-784eb527f105" config-ref="Database_Config_B">
+				<db:sql >DELETE FROM Account 
+WHERE Name = :name</db:sql>
+				<db:input-parameters ><![CDATA[#[{'name' : vars.account.Name}]]]></db:input-parameters>
+			</db:delete>
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:verify-call doc:name="Verify call for insert operation" doc:id="d169a8c9-05fa-410f-bf1f-679ac50991ea" processor="db:bulk-insert" times="1" />
+			<munit-tools:verify-call doc:name="Verify call for select operation" doc:id="6615e195-e10d-4e56-8116-3ab61227a26c" processor="ee:transform" atLeast="1">
+				<munit-tools:with-attributes>
+					<munit-tools:with-attribute attributeName="doc:id" whereValue="1d5b7cc2-9ddb-4b89-a8a1-609ed808e03a" />
+				</munit-tools:with-attributes>
+			</munit-tools:verify-call>
+		</munit:validation>
+	</munit:test>
+	
+	<munit:test name="suiteUpdateTest" description="MUnit Test" doc:id="c5aa2ea1-e09a-4728-b431-67eac2ac193d" >
+		<munit:execution >
+			<ee:transform doc:name="Prepare account for insert to database B" doc:id="2928919f-2ae4-4bb9-af13-a113f013650b">
+				<ee:message>
+					<ee:set-payload><![CDATA[%dw 2.0
+output application/java
+---
+{
+	AnnualRevenue         : "10000.0",
+	BillingCity           : "San Francisco",
+	BillingCountry        : "USA",
+	BillingPostalCode     : "09904",
+	BillingState          : "CA",
+	BillingStreet         : "Main Street 25",
+	Description           : "information",
+	Fax                   : "+421995555",
+	Industry              : "Energy",
+	Name                  : "MUnitTest",
+	NumberOfEmployees     : 10000,
+	Phone                 : "+421995555",
+	ShippingCity          : "San Francisco",
+	ShippingCountry       : "USA",
+	ShippingPostalCode    : "09904",
+    ShippingState         : "CA",
+	ShippingStreet        : "Main Street 44",
+	Website               : "http://www.test.com"
+}]]></ee:set-payload>
+				</ee:message>
+			</ee:transform>
+			<db:insert doc:name="insert account to database B" doc:id="b5e8ea51-cdbb-47fb-8bd9-8814fa17f599" config-ref="Database_Config_B">
+				<db:sql>INSERT INTO Account (
+								Id,
+								AnnualRevenue,
+								BillingCity,
+								BillingCountry,
+								BillingPostalCode,
+								BillingState,
+								BillingStreet,
+								Description,
+								Fax,
+								Industry,
+								Name,
+								NumberOfEmployees,
+								Phone,
+								ShippingCity,
+								ShippingCountry,
+								ShippingPostalCode,
+								ShippingState,
+								ShippingStreet,
+								Website
+								) VALUES (
+								UUID(),
+								:AnnualRevenue,
+								:BillingCity,
+								:BillingCountry,
+								:BillingPostalCode,
+								:BillingState,
+								:BillingStreet,
+								:Description,
+								:Fax,
+								:Industry,
+								:Name,
+								:NumberOfEmployees,
+								:Phone,
+								:ShippingCity,
+								:ShippingCountry,
+								:ShippingPostalCode,
+								:ShippingState,
+								:ShippingStreet,
+								:Website
+								)</db:sql>
+				<db:input-parameters><![CDATA[#[payload]]]></db:input-parameters>
+			</db:insert>
+			<flow-ref doc:name="businesslogicFlow" doc:id="661c8efa-3d30-419f-ba26-30f4946c7fe9" name="businesslogicFlow"/>
+			<scripting:execute engine="groovy" doc:name="Sleep for 10 seconds until the processing is completed" doc:id="d2523721-543c-403f-958f-9a642e118344" >
+				<scripting:code >sleep(10000)</scripting:code>
+			</scripting:execute>
+			<db:select doc:name="Select Account from database B" doc:id="02bd43c3-033b-4335-b43a-21d4baa985a8" config-ref="Database_Config_B">
+				<db:sql >SELECT Industry FROM Account WHERE Name = :name</db:sql>
+				<db:input-parameters ><![CDATA[#[{'name' : vars.account.Name}]]]></db:input-parameters>
+			</db:select>
+			<munit-tools:assert-that doc:name="Assert that we found updated Account " doc:id="e86860c3-64a4-44df-8a34-5e4688ad6927" is="#[MunitTools::equalTo(1)]" expression="#[sizeOf(payload)]"/>
+			<munit-tools:assert-that doc:name="Assert that Account was updated" doc:id="3af80ecb-5d2a-4585-baa6-fcbe3b30f89b" expression="#[payload[0].Industry]" is="#[MunitTools::equalTo(vars.account.Industry)]"/>
+			<db:delete doc:name="Delete migrated Accounts from database B" doc:id="0ae458da-87b0-4a5f-9a10-82146e849d89" config-ref="Database_Config_B">
+				<db:sql >DELETE FROM Account  WHERE Name = :name</db:sql>
+				<db:input-parameters ><![CDATA[#[{'name' : vars.account.Name}]]]></db:input-parameters>
+			</db:delete>
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:verify-call doc:name="Verify call for update operation" doc:id="96cb81e0-43de-47f0-a5d8-a8e987db59d6" processor="db:bulk-update" times="1"/>
+			<munit-tools:verify-call doc:name="Verify call for select operation" doc:id="dd7194d0-5ff1-4022-aac6-6cf742a0b878" atLeast="1" processor="ee:transform">
+				<munit-tools:with-attributes>
+					<munit-tools:with-attribute attributeName="doc:id" whereValue="1d5b7cc2-9ddb-4b89-a8a1-609ed808e03a" />
+				</munit-tools:with-attributes>
+			</munit-tools:verify-call>
+		</munit:validation>
+	</munit:test>
+		
+	<munit:after-test name="test-suiteAfter_Test" description="After tests actions" doc:id="66a075ba-0e9b-4c2d-91eb-1bad2796c19e" >
+		<db:delete doc:name="Delete source Account in database A" doc:id="feb98cde-bbf5-46c6-a400-c82962bd524c" config-ref="Database_Config_A">
+			<db:sql >DELETE FROM Account WHERE account_name = :name</db:sql>
+			<db:input-parameters ><![CDATA[#[{'name' : vars.account.Name}]]]></db:input-parameters>
+		</db:delete>
+	</munit:after-test> 
+
+</mule>
