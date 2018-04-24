@@ -30,10 +30,10 @@ I want to migrate a large set of accounts from one database to another.
 This Template should serve as a foundation for the process of migrating accounts from Database A to Database B, it also provides the ability to specify the desired behavior with a filtering criteria when an account already exists in the Database B.
 
 This Template leverages the [Batch Module](http://www.mulesoft.org/documentation/display/current/Batch+Processing).
-The batch job is divided in Input, Process and On Complete stages.
-During the Input stage the Template will select all the existing Accounts that match the filtering criteria from Database A.
-The last step of the Process stage will create / update the accounts in Database B. In addition, it performs a lookup and assigns Account Representatives using the zip code of the source Account.
-Finally during the On Complete stage the Template will show statistics of the data transfer in the studio console and send out a notification email with the results of the batch execution.
+The batch job is divided in *Process* and *On Complete* stages.
+Migration process starts from fetching all the existing Accounts that match the filter criteria from Database A.
+On *Process* stage will create / update the accounts in Database B. In addition, it performs a lookup and assigns Account Representatives using the zip code of the source Account.
+Finally during the *On Complete* stage the Template will show statistics of the data transfer in the studio console and send out a notification email with the results of the batch execution.
 
 # Considerations <a name="considerations"/>
 
@@ -77,13 +77,7 @@ There are no particular considerations for this Anypoint Template regarding DB a
 
 # Run it! <a name="runit"/>
 Simple steps to get Database to Database Account Migration running.
-In any of the ways you would like to run this Template this is an example of the output you'll see after hitting the HTTP endpoint:
-	{
-	  "Message": "Batch Process initiated",
-	  "ID": "7fc674b0-e4b7-11e7-9627-100ba905a441",
-	  "RecordCount": 32,
-	  "StartExecutionOn": "2017-12-19T13:24:03Z"
-	}
+
 
 ## Running on premise <a name="runonopremise"/>
 In this section we detail the way you should run your Anypoint Template on your computer.
@@ -99,10 +93,8 @@ First thing to know if you are a newcomer to Mule is where to get the tools.
 ### Importing an Anypoint Template into Studio
 Mule Studio offers several ways to import a project into the workspace, for instance: 
 
-+ Anypoint Studio generated Deployable Archive (.zip)
-+ Anypoint Studio Project from External Location
-+ Maven-based Mule Project from pom.xml
-+ Mule ESB Configuration XML from External Location
++ Anypoint Studio Project from File System
++ Packaged mule application (.jar)
 
 You can find a detailed description on how to do so in this [Documentation Page](http://www.mulesoft.org/documentation/display/current/Importing+and+Exporting+in+Studio).
 
@@ -132,32 +124,35 @@ Mule Studio provides you with really easy way to deploy your Template directly t
 ## Properties to be configured (With examples) <a name="propertiestobeconfigured"/>
 In order to use this Mule Anypoint Template you need to configure properties (Credentials, configurations, etc.) either in properties file or in CloudHub as Environment Variables. Detail list with examples:
 ### Application configuration
-+ http.port `9090` 
-+ page.size `200`
+**HTTP Connector configuration**
++ http.port `9090`
 
-#### Database Connector configuration
+**Batch Aggregator configuration**
++ page.size `1000`
+
+**Database Connector configuration**
 + db.a.host `localhost`
 + db.a.port `3306`
 + db.a.user `user-nameA`
 + db.a.password `user-passwordA`
 + db.a.databasename `dbnameA`
 
-#### Database Connector configuration
+**Database Connector configuration**
 + db.b.host `localhost`
 + db.b.port `3306`
 + db.b.user `user-nameB`
 + db.b.password `user-passwordB`
 + db.b.databasename `dbnameB`
 
-#### SMTP Services configuration
+**SMTP Services configuration**
 + smtp.host `smtp.gmail.com`
 + smtp.port `587`
 + smtp.user `email%40example.com`
 + smtp.password `password`
 
-#### E-mail Details
+**E-mail Details**
 + mail.from `batch.migrateaccounts.migration%40mulesoft.com`
-+ mail.to `cesar.garcia@mulesoft.com`
++ mail.to `your.email@gmail.com`
 + mail.subject `Batch Job Finished Report`
 
 # API Calls <a name="apicalls"/>
