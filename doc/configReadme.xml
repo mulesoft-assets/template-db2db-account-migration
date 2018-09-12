@@ -7,68 +7,72 @@
 		<section id="use_case">
 I want to migrate a large set of accounts from one database to another.
 
-This Template should serve as a foundation for the process of migrating accounts from Database A to Database B, it also provides the ability to specify the desired behavior with a filtering criteria when an account already exists in the Database B.
+This template helps you migrate accounts from Database A to Database B, and provides the ablity to 
+specify a filtering criteria when an account already exists in the Database B.
 
-This Template leverages the [Batch Module](http://www.mulesoft.org/documentation/display/current/Batch+Processing).
-The batch job is divided in *Process* and *On Complete* stages.
-Migration process starts from fetching all the existing Accounts that match the filter criteria from Database A.
-On *Process* stage will create / update the accounts in Database B. In addition, it performs a lookup and assigns Account Representatives using the zip code of the source Account.
-Finally during the *On Complete* stage the Template will show statistics of the data transfer in the studio console and send out a notification email with the results of the batch execution. 
+This template leverages the Mule Batch Module.
+The batch job is divided in Input, Process and On Complete stages.
+During the Input stage the Template selects all the existing accounts that match the filtering criteria from Database A.
+The last step of the Process stage creates or update the accounts in Database B. In addition, the template performs a 
+lookup and assigns Account Representatives using the zip code of the source Account.
+Finally during the On Complete stage, the template displays statistics about the data transfer 
+in the Studio console and sends a notification email with the results of the batch execution. 
 		</section>
 		<section id="considerations">
 <![CDATA[
-**Note:** This particular Anypoint Template illustrates the migration use case between two Databases, thus it requires a Database instances to work.
-The Anypoint Template comes packaged with a SQL script to create the DB table that it uses. 
-It is the user responsibility to use the scripts to create the tables in an available schema and change the configuration accordingly.
-The SQL script files can be found in [src/main/resources/](../master/src/main/resources/)
+**Note:** This template illustrates the migration use case between two Databases, thus it 
+requires database instances to work.
+The template comes packaged with an SQL script to create the database table it uses. 
+Use the scripts to create the tables in an available schema and change the configuration accordingly.
+The SQL script files can be found in the src/main/resources/ folder of the installed template.
 
 This template is customized for MySQL. To use it with different SQL implementation, some changes are necessary:
 
-* update SQL script dialect to desired one
-* replace MySQL driver library (or add another) dependency to desired one in [POM](pom.xml)
-* update Database Config to suitable connection instead of `db:my-sql-connection` in global elements (config.xml)
-* update connection configurations in `mule.*.properties` file
+* Update the SQL script dialect for the alternate SQL implementation.
+* Replace the MySQL driver library, or add another dependency to the desired one in the pom.xml file.
+* Replace the attribute `driverClassName` of the suitable `db:generic-config` element with the class name of the desired JDBC driver in the src/main/app/config.xml file.
+* Update JDBC URL in `mule.*.properties` file.
 ]]>
 		</section>
 		<section id="running_on_cloudhub">
 <![CDATA[
-Once your app is all set and started, supposing you choose `db2dbaccountmigration` as domain name to trigger the use case, you just need to hit `http://db2dbaccountmigration.cloudhub.io/migrateaccounts` and report will be sent to the emails configured.
+If you choose `db2dbaccountmigration` as the domain name to trigger the use case, browse to `http://db2dbaccountmigration.cloudhub.io/migrateaccounts`, which invokes the application and sends the report to the emails you configured.
 ]]>
 		</section>
 		<section id="running_on_standalone">
 <![CDATA[
-After this, to trigger the use case you just need to hit the local HTTP Listener Connector on the port you configured in your file. If this is for instance, `9090` then you should hit: `http://localhost:9090/migrateaccounts` and this will run the migration process and send the batch process statistics to the email addresses configured.
+After this, to trigger the use case browse to the local HTTP Listener Connector using the port you configured in your file. For example, for port `9090`, browse to `http://localhost:9090/migrateaccounts`, which runs the migration process and sends the batch process statistics to the email addresses you configured.
 ]]>
 		</section>
 		<section id="application_configuration">
 		<![CDATA[
-**HTTP Connector configuration**
+**HTTP Connector Configuration**
 + http.port `9090`
 
-**Batch Aggregator configuration**
+**Batch Aggregator Configuration**
 + page.size `1000`
 
-**Database Connector configuration**
+**Database Connector Configuration**
 + db.a.host `localhost`
 + db.a.port `3306`
 + db.a.user `user-nameA`
 + db.a.password `user-passwordA`
 + db.a.databasename `dbnameA`
 
-**Database Connector configuration**
+**Database Connector Configuration**
 + db.b.host `localhost`
 + db.b.port `3306`
 + db.b.user `user-nameB`
 + db.b.password `user-passwordB`
 + db.b.databasename `dbnameB`
 
-**SMTP Services configuration**
+**SMTP Services Configuration**
 + smtp.host `smtp.gmail.com`
 + smtp.port `587`
 + smtp.user `email%40example.com`
 + smtp.password `password`
 
-**E-mail Details**
+**Email Details**
 + mail.from `batch.migrateaccounts.migration%40mulesoft.com`
 + mail.to `your.email@gmail.com`
 + mail.subject `Batch Job Finished Report`
@@ -83,23 +87,23 @@ This section is not relevant for this use case.
 		<section id="default_endpoints_xml">
 		<![CDATA[
 This is the file where you can find the inbound and outbound sides of your integration app.
-This Template has only an [HTTP Listener Connector](http://www.mulesoft.org/documentation/display/current/HTTP+Listener+Connector) as the way to trigger the use case.
+This template uses the HTTP Listener Connector to trigger the use case.
 
 $H$H# Inbound Flow
 **HTTP Listener Connector** - Start Report Generation
 
 + `${http.port}` is set as a property to be defined either in a property file or in CloudHub environment variables.
 + The path configured by default is `migrateaccounts` and you are free to change it for the one you prefer.
-+ The host name for all endpoints in your CloudHub configuration should be defined as `localhost`. CloudHub will then route requests from your application domain URL to the endpoint.
++ Define the host name as `localhost` for all endpoints in your CloudHub configuration. CloudHub then routes requests from your application domain URL to the endpoint.
 
-Flow *triggerFlow* executes a [Batch Job](http://www.mulesoft.org/documentation/display/current/Batch+Processing) defined in *businessLogic.xml*, which handles all the migration logic.
+Flow *triggerFlow* executes a batch job defined in *businessLogic.xml*, which handles all the migration logic.
 This flow has Exception Strategy that basically consists of invoking the *defaultChoiseExceptionStrategy* defined in *errorHandling.xml* file.
 ]]>
 		</section>
 		<section id="default_business_logic_xml">
 		<![CDATA[
-Functional aspect of the Template is implemented in this XML, directed by one flow responsible of excecuting the logic.
-This file contains a [Batch Job](http://www.mulesoft.org/documentation/display/current/Batch+Processing) which handles all the migration logic.
+Functional aspect of the template is implemented in this XML, directed by one flow responsible of excecuting the logic.
+This file contains a batch job that handles all the migration logic.
 ]]>
 		</section>
 	</sections>
