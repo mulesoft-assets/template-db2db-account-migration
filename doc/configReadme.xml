@@ -11,8 +11,8 @@ This template helps you migrate accounts from Database A to Database B, and prov
 specify a filtering criteria when an account already exists in the Database B.
 
 This template leverages the Mule Batch Module.
-The batch job is divided in Input, Process and On Complete stages.
-During the Input stage the Template selects all the existing accounts that match the filtering criteria from Database A.
+The batch job is divided into Input, Process and On Complete stages.
+During the Input stage, the template selects all the existing accounts that match the filtering criteria from Database A.
 The last step of the Process stage creates or update the accounts in Database B. In addition, the template performs a 
 lookup and assigns Account Representatives using the zip code of the source Account.
 Finally during the On Complete stage, the template displays statistics about the data transfer 
@@ -20,13 +20,13 @@ in the Studio console and sends a notification email with the results of the bat
 		</section>
 		<section id="considerations">
 <![CDATA[
-**Note:** This template illustrates the migration use case between two Databases, thus it 
+**Note:** This template illustrates the migration use case between two databases, and
 requires database instances to work.
 The template comes packaged with an SQL script to create the database table it uses. 
 Use the scripts to create the tables in an available schema and change the configuration accordingly.
 The SQL script files can be found in the src/main/resources/ folder of the installed template.
 
-This template is customized for MySQL. To use it with different SQL implementation, some changes are necessary:
+This template is customized for MySQL. To use it with different SQL implementation, these changes are necessary:
 
 * Update the SQL script dialect for the alternate SQL implementation.
 * Replace the MySQL driver library, or add another dependency to the desired one in the pom.xml file.
