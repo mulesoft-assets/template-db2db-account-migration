@@ -1,6 +1,8 @@
 
 # Anypoint Template: Database to Database Account Migration
 
+![97bd1270-DB2DBAccountMigration.png](https://exchange2-file-upload-service-kprod.s3.us-east-1.amazonaws.com/97bd1270-DB2DBAccountMigration.png)
+
 # License Agreement
 This template is subject to the conditions of the 
 <a href="https://s3.amazonaws.com/templates-examples/AnypointTemplateLicense.pdf">MuleSoft License Agreement</a>.
